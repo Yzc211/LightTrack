@@ -10,23 +10,19 @@
 '''python
 import torch
 import torch.nn as nn
-
 class DepthwiseSeparableConv(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size=3, padding=1):
         super(DepthwiseSeparableConv, self).__init__()
         self.depthwise = nn.Conv2d(in_channels, in_channels, kernel_size=kernel_size, padding=padding, groups=in_channels)
         self.pointwise = nn.Conv2d(in_channels, out_channels, kernel_size=1)
         self.relu = nn.ReLU6(inplace=True)
-
     def forward(self, x):
         x = self.depthwise(x)
         x = self.relu(x)
         x = self.pointwise(x)
         x = self.relu(x)
         return x
-
 class Corner_Predictor_Lite_Rep_v3(nn.Module):
-
     def __init__(self, inplanes=128, channel=64, feat_sz=20, stride=16):
         super(Corner_Predictor_Lite_Rep_v2, self).__init__()
         self.feat_sz = feat_sz
@@ -38,7 +34,6 @@ class Corner_Predictor_Lite_Rep_v3(nn.Module):
             DepthwiseSeparableConv(channel, channel, kernel_size=3, padding=1),
             nn.Conv2d(channel, 2, kernel_size=1)
         )
-
         with torch.no_grad():
             self.indice = (torch.arange(0, self.feat_sz).view(-1, 1) + 0.5) * self.stride  # here we can add a 0.5
             # generate mesh-grid
@@ -46,7 +41,6 @@ class Corner_Predictor_Lite_Rep_v3(nn.Module):
                 .view((self.feat_sz * self.feat_sz,)).float().cuda()
             self.coord_y = self.indice.repeat((1, self.feat_sz)) \
                 .view((self.feat_sz * self.feat_sz,)).float().cuda()
-
     def forward(self, x, return_dist=False, softmax=True):
         score_map_tl, score_map_br = self.get_score_map(x)
         if return_dist:
@@ -57,11 +51,9 @@ class Corner_Predictor_Lite_Rep_v3(nn.Module):
             coorx_tl, coory_tl = self.soft_argmax(score_map_tl)
             coorx_br, coory_br = self.soft_argmax(score_map_br)
             return torch.stack((coorx_tl, coory_tl, coorx_br, coory_br), dim=1) / self.img_sz
-
     def get_score_map(self, x):
         score_map = self.conv_tower(x)  # (B,2,H,W)
         return score_map[:, 0, :, :], score_map[:, 1, :, :]
-
     def soft_argmax(self, score_map, return_dist=False, softmax=True):
         score_vec = score_map.view((-1, self.feat_len))  # (batch, feat_sz * feat_sz)
         prob_vec = nn.functional.softmax(score_vec, dim=1)
@@ -74,4 +66,4 @@ class Corner_Predictor_Lite_Rep_v3(nn.Module):
                 return exp_x, exp_y, score_vec
         else:
             return exp_x, exp_y
-'''
+            '''
