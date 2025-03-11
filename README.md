@@ -1,4 +1,5 @@
 # LightTrack
+
 基于STARK-lightning轻量模型进行改进，现共提出三种改进方案并进行实验
 1.深度可分离卷积的替换尝试
 参考LightTrack方法在模型头部中普遍使用了轻量常用的DSConv，相比之下，STARK-lightning模型所用头部由若干RepVGG块（参数量较多）与一层3×3卷积构成。
@@ -7,7 +8,8 @@
 2.减少卷积层的通道数（从 128 减少到 64）。
 3.使用 ReLU6 代替 ReLU 作为激活函数，进一步优化计算效率。又因为它的输出范围有限，更容易进行定点数表示，所以在移动设备或嵌入式设备等量化模型中会有更佳的表现。
 代码如下：
-'''python
+
+```python
 import torch
 import torch.nn as nn
 class DepthwiseSeparableConv(nn.Module):
@@ -36,7 +38,7 @@ class Corner_Predictor_Lite_Rep_v3(nn.Module):
         )
         with torch.no_grad():
             self.indice = (torch.arange(0, self.feat_sz).view(-1, 1) + 0.5) * self.stride  # here we can add a 0.5
-            # generate mesh-grid
+generate mesh-grid
             self.coord_x = self.indice.repeat((self.feat_sz, 1)) \
                 .view((self.feat_sz * self.feat_sz,)).float().cuda()
             self.coord_y = self.indice.repeat((1, self.feat_sz)) \
@@ -66,4 +68,6 @@ class Corner_Predictor_Lite_Rep_v3(nn.Module):
                 return exp_x, exp_y, score_vec
         else:
             return exp_x, exp_y
-            '''
+```
+
+​          
