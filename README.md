@@ -7,7 +7,7 @@
 2.减少卷积层的通道数（从 128 减少到 64）。
 3.使用 ReLU6 代替 ReLU 作为激活函数，进一步优化计算效率。又因为它的输出范围有限，更容易进行定点数表示，所以在移动设备或嵌入式设备等量化模型中会有更佳的表现。
 代码如下：
-"""python
+'''python
 import torch
 import torch.nn as nn
 
@@ -74,4 +74,4 @@ class Corner_Predictor_Lite_Rep_v3(nn.Module):
                 return exp_x, exp_y, score_vec
         else:
             return exp_x, exp_y
-"""
+'''
