@@ -7,7 +7,7 @@
 2.减少卷积层的通道数（从 128 减少到 64）。
 3.使用 ReLU6 代替 ReLU 作为激活函数，进一步优化计算效率。又因为它的输出范围有限，更容易进行定点数表示，所以在移动设备或嵌入式设备等量化模型中会有更佳的表现。
 代码如下：
-'''python
+"""python
 import torch
 import torch.nn as nn
 
@@ -25,8 +25,7 @@ class DepthwiseSeparableConv(nn.Module):
         x = self.relu(x)
         return x
 
-class Corner_Predictor_Lite_Rep_v2(nn.Module):
-    """ Corner Predictor module (Lite version with repvgg style)"""
+class Corner_Predictor_Lite_Rep_v3(nn.Module):
 
     def __init__(self, inplanes=128, channel=64, feat_sz=20, stride=16):
         super(Corner_Predictor_Lite_Rep_v2, self).__init__()
@@ -34,14 +33,12 @@ class Corner_Predictor_Lite_Rep_v2(nn.Module):
         self.feat_len = feat_sz ** 2
         self.stride = stride
         self.img_sz = self.feat_sz * self.stride
-        '''convolution tower for two corners'''
         self.conv_tower = nn.Sequential(
             DepthwiseSeparableConv(inplanes, channel, kernel_size=3, padding=1),
             DepthwiseSeparableConv(channel, channel, kernel_size=3, padding=1),
             nn.Conv2d(channel, 2, kernel_size=1)
         )
 
-        '''about coordinates and indexs'''
         with torch.no_grad():
             self.indice = (torch.arange(0, self.feat_sz).view(-1, 1) + 0.5) * self.stride  # here we can add a 0.5
             # generate mesh-grid
@@ -51,7 +48,6 @@ class Corner_Predictor_Lite_Rep_v2(nn.Module):
                 .view((self.feat_sz * self.feat_sz,)).float().cuda()
 
     def forward(self, x, return_dist=False, softmax=True):
-        """ Forward pass with input x. """
         score_map_tl, score_map_br = self.get_score_map(x)
         if return_dist:
             coorx_tl, coory_tl, prob_vec_tl = self.soft_argmax(score_map_tl, return_dist=True, softmax=softmax)
@@ -67,7 +63,6 @@ class Corner_Predictor_Lite_Rep_v2(nn.Module):
         return score_map[:, 0, :, :], score_map[:, 1, :, :]
 
     def soft_argmax(self, score_map, return_dist=False, softmax=True):
-        """ get soft-argmax coordinate for a given heatmap """
         score_vec = score_map.view((-1, self.feat_len))  # (batch, feat_sz * feat_sz)
         prob_vec = nn.functional.softmax(score_vec, dim=1)
         exp_x = torch.sum((self.coord_x * prob_vec), dim=1)
@@ -79,4 +74,4 @@ class Corner_Predictor_Lite_Rep_v2(nn.Module):
                 return exp_x, exp_y, score_vec
         else:
             return exp_x, exp_y
-'''
+"""
