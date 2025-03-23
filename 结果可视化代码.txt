@@ -1,0 +1,25 @@
+ #测试结果可视化与保存
+            pred_bbox = out['target_bbox']
+
+            # 确保 pred_bbox 中的值是整数
+            pred_bbox = [int(x) for x in pred_bbox]  # 将所有值转换为整数
+
+            # 绘制预测的矩形框
+            cv2.rectangle(image, (pred_bbox[0], pred_bbox[1]),
+                          (pred_bbox[0] + pred_bbox[2], pred_bbox[1] + pred_bbox[3]), (0, 255, 255), 3) #(0,0,255) red (0,255,0) green (255,0,0) blue (0,255,255) yellow
+            # 显示图像
+            cv2.imshow('show', image)  # 将该帧预测结果可视化
+            cv2.waitKey(1)
+            # 保存图片
+            save_img_path = os.path.join('imgs_Result', seq.name, seq.name + '_frame{:04d}.jpg'.format(frame_num))  # 保存图片的路径
+            os.makedirs(os.path.dirname(save_img_path), exist_ok=True)  # 确保保存路径存在
+            cv2.imwrite(save_img_path, image)  # 保存可视化结果
+
+指定数据集与序列,进行可视化结果保存
+换算法了记得改颜色
+python tracking/test.py stark_lightning_X_trt baseline_rephead_4_lite_search5 --dataset otb --sequence Basketball --threads 0 --num_gpus 1
+python tracking/test.py stark_lightning_X_trt baseline_rephead_4_lite_search5 --dataset got10k_test --sequence GOT-10k_Test_000001 --threads 0 --num_gpus 1
+python tracking/test.py stark_lightning_X_trt baseline_rephead_4_lite_search5 --dataset lasot --sequence airplane-1 --threads 0 --num_gpus 1
+
+
+

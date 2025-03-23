@@ -1,0 +1,60 @@
+got10k train and evaluate: （stark_s)
+python tracking/test.py stark_s baseline --dataset got10k_test --threads 8
+python lib/test/utils/transform_got10k.py --tracker_name stark_s --cfg_name baseline_got10k_only
+
+Test Flops，Params，and Speed
+python tracking/analysis_results.py --script stark_s --config baseline
+——————————————————————————————————————————
+train and evaluate: （stark_lightning)
+训练：python tracking/train.py --script stark_lightning_X_trt --config baseline_rephead_4_lite_search5 --save_dir . --mode multiple --nproc_per_node 2
+单卡训练：python tracking/train.py --script stark_lightning_X_trt --config baseline_rephead_4_lite_search5 --save_dir . --mode single
+
+直接用got-10k测试，不转成onnx？：
+python tracking/test.py stark_lightning_X_trt baseline_rephead_4_lite_search5 --dataset got10k_test --threads 8 --num_gpus 2（--num_gpus 2可行）
+单卡：python tracking/test.py stark_lightning_X_trt baseline_rephead_4_lite_search5 --dataset got10k_test --threads 4 --num_gpus 1
+python lib/test/utils/transform_got10k.py --tracker_name stark_lightning_X_trt --cfg_name baseline_rephead_4_lite_search5
+——————————————————————————————————————————————————————
+直接用lasot/otb测试：
+python tracking/test.py stark_lightning_X_trt baseline_rephead_4_lite_search5 --dataset lasot --threads 4 --num_gpus 1（头部改了记得改checkpoint）
+python tracking/test.py stark_lightning_X_trt baseline_rephead_4_lite_search5 --dataset otb --threads 4 --num_gpus 1
+得到指标：
+python tracking/analysis_results_ITP.py --script stark_lightning_X_trt --config baseline_rephead_4_lite_search5（otb也能用这个,lightning专用）
+python tracking/analysis_results.py   # need to modify tracker configs and names（通用命令，需要更改其中内容）
+————————————————————————————————————————————————————————
+评估参数量和速度
+python tracking/profile_model_lightning_X_trt.py
+——————————————————————————————————————————————————————————
+将训练好的PyTorch模型转换成onnx格式,并测试onnxruntime
+python tracking/ORT_lightning_X_trt_backbone_bottleneck_pe.py  # for the template branch
+python tracking/ORT_lightning_X_trt_complete.py  # for the search region branch
+
+在LaSOT上测试转换后的模型（支持多卡推理）
+首先在lib/test/tracker/stark_lightning_X_trt.py中设置 use_onnx = True, 之后运行 （只能cpu推理，速度慢）
+python tracking/test.py stark_lightning_X_trt baseline_rephead_4_lite_search5 --dataset_name lasot --threads 8 --num_gpus 2
+
+评估跟踪指标:
+python tracking/analysis_results_ITP.py --script stark_lightning_X_trt --config baseline_rephead_4_lite_search5
+————————————————————————————————————————————————————
+tensorboard：
+tensorboard --logdir=/home/bpc/yzc/STARK/Stark-main/tensorboard
+
+————————————————————————————————————————————————————
+pip3 install onnx onnxruntime-gpu==1.4.0
+conda install pytorch==1.10.0 torchvision==0.11.0 torchaudio==0.10.0 cudatoolkit=11.3 -c pytorch -c conda-forge
+pip install onnx onnxruntime-gpu==1.4.0
+
+conda install pytorch torchvision torchaudio cudatoolkit=11.4 -c pytorch
+
+可视化工具调用：
+python draw_rect.py   --video Basketball   --dataset_dir /home/bpc/yzc/dataset   --dataset OTB100   --tracker_result_dir /home/bpc/yzc/STARK/Stark-main/test/tracking_results/stark_lightning_X_trt   --format png   --trackers baseline plan1 plan2 plan3   --save_dir /home/bpc/yzc/STARK/Stark-main/BoxResult
+
+python draw_rect.py   --video drone-2  --dataset_dir /home/bpc/yzc/dataset/LaSOTTest   --dataset LaSOTTest   --tracker_result_dir /home/bpc/yzc/STARK/Stark-main/test/tracking_results/stark_lightning_X_trt   --format png   --trackers baseline plan1 plan2 plan3   --save_dir /home/bpc/yzc/STARK/Stark-main/BoxResult
+颜色顺序：黑色（真值）跟踪器：黄 红 绿 蓝 青 粉 紫 橙...
+
+valuation on OTB100(UAV123, NFS, LaSOT, LaSOText):
+cd /path/to/pysot-toolkit
+export PYTHONPATH=./:$PYTHONPATH
+python bin/eval.py --dataset_dir /home/bpc/yzc/dataset --dataset OTB100 --tracker_result_dir /home/bpc/yzc/STARK/Stark-main/test/tracking_results/stark_lightning_X_trt --trackers baseline plan1 plan2 plan3 --num 4 --show_video_level --vis
+
+
+

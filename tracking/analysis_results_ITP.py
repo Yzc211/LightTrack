@@ -23,8 +23,8 @@ if __name__ == "__main__":
     trackers = []
     trackers.extend(trackerlist(args.script, args.config, "None", None, args.config))
 
-    dataset = get_dataset('lasot')
-    print_results(trackers, dataset, 'LaSOT', merge_results=True, plot_types=('success', 'prec', 'norm_prec'))
+    # dataset = get_dataset('lasot')
+    # print_results(trackers, dataset, 'LaSOT', merge_results=True, plot_types=('success', 'prec', 'norm_prec'))
 
-    # dataset = get_dataset('otb')
-    # print_results(trackers, dataset, 'otb', merge_results=True, plot_types=('success', 'prec', 'norm_prec'))
+    dataset = get_dataset('otb')
+    print_results(trackers, dataset, 'otb', merge_results=True, plot_types=('success', 'prec', 'norm_prec'))
