@@ -1,6 +1,6 @@
-# LightTrack
+# LightTrack 基于轻量化孪生网络的实时单目标跟踪
 
-基于STARK-lightning轻量模型进行改进，现共提出三种改进方案并进行实验
+基于STARK-lightning轻量模型进行改进，共提出三种改进方案并进行实验
 
 ## 1.深度可分离卷积的替换
 
@@ -76,4 +76,6 @@ generate mesh-grid
             return exp_x, exp_y
 ```
 
-​          
+## 2.混合卷积的应用
+
+## 3.topk稀疏注意力
